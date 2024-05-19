@@ -20,7 +20,11 @@ db.zips.aggregate( [
 
 b) Get the average city population by state.
 
-
+db.zips.aggregate( [
+    { "$group": {"_id": {"state_id": "$state_id", "city": "$city", "state_name": "$state_name"}, "population": {"$sum": "$population"}} },
+    { "$group": {"_id": "$_id.state_id", "state_name": { "$first": "$_id.state_name" }, "average_city_population": {"$avg": "$population"}} },
+    { "$project": { "state_id": "$_id", "state_name": 1, "average_city_population": { "$round": ["$average_city_population", 0] }, "_id": 0}}
+] )
 
 c) Get the largest and the smallest city in each state.
 
