@@ -13,7 +13,10 @@ Inside Windows terminal:
 
 a) Get the states with a total population of over 10 million.
 
-
+db.zips.aggregate( [
+    { "$group": {"_id": "$state_id", "state_name": { "$first": "$state_name" }, "state_population": {"$sum": "$population"}} },
+    { "$match": {"state_population": {"$gt": 10 * 1000000}} }
+] )
 
 b) Get the average city population by state.
 
