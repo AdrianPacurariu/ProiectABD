@@ -1,15 +1,36 @@
 First-Time Setup:
 
-Inside Windows terminal:
+Inside Windows terminal, type the following command to start a Docker container where mongoDB is ran.
+
 > docker run -d --name mongo-on-docker -p 27888:27017 -e MONGO_INITDB_ROOT_USERNAME=mongoadmin -e MONGO_INITDB_ROOT_PASSWORD=secret mongo
 
+You can put any username you want instead of "mongoadmin" and same goes for password.
+
+For the following mongoimport command, please make sure that the uszips.csv is saved in the same folder where you are running the terminal, otherwise give the
+full path onto the "file" argument. This command is used to import the .csv file.
+
 > mongoimport --db=abdProject --collection=zips --type=csv --headerline "mongodb://mongoadmin:secret@localhost:27888/?authSource=admin" --file=uszips.csv --ignoreBlanks
+
+Connect to the mongoDB shell:
+
 > mongosh "mongodb://mongoadmin:secret@localhost:27888/?authSource=admin"
+
+Create the database, called abdProject:
 
 > use abdProject
 
-> db.zips.countDocuments(); // to check that the import was successful
+Checking that the import was successful. We should have 33787 entries.
 
+> db.zips.countDocuments();
+
+
+------ SOLUTION DELIVERY ------
+
+Mostly, I will try to keep it as simple as possible..
+I will use some of the aggregation stages, like $group, $match, $project and $set.
+$group is used to separate the documents by the fields we need.
+$match is used to filter the documents, so only documents that contain our criteria are relevant.
+$project helps us pass the output through the pipeline and to include/exclude fields. 1 means true aka we want to include that field into the output document, 0 means false aka not.
 
 a) Get the states with a total population of over 10 million.
 
@@ -28,7 +49,11 @@ db.zips.aggregate( [
 
 c) Get the largest and the smallest city in each state.
 
-
+db.zips.aggregate( [
+   { "$group": {"_id": { "state_id": "$state_id", "city": "$city", "state_name": "$state_name" }, "population": {"$sum": "$population"}} },
+   { "$sort": {"population": 1} },
+   { "$group": {"_id" : "$_id.state_id", "smallest_city" : { "$first": "$_id.city" }, "smallest_population" : { "$first": "$population" }, "largest_city" : { "$last" : "$_id.city" }, "largest_population" : { "$last" : "$population" }} }
+] )
 
 d) Get the largest and the smallest counties in each state.
 
