@@ -57,7 +57,11 @@ db.zips.aggregate( [
 
 d) Get the largest and the smallest counties in each state.
 
-
+db.zips.aggregate( [
+   { "$group": {"_id": { "state_id": "$state_id", "county_name": "$county_name" }, "population": { "$sum": "$population" }} },
+   { "$sort": { "population": 1 } },
+   { "$group": {"_id" : "$_id.state_id", "smallest_county" : { "$first": "$_id.county_name" }, "smallest_population" : { "$first": "$population" }, "largest_county" : { "$last" : "$_id.county_name" }, "largest_population" : { "$last" : "$population" }} }
+] )
 
 e) Get the nearest 10 zips from one of Chicago's landmarks, the Willis Tower situated at coordinates 41.878876, -87.635918.
 
