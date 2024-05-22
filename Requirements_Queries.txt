@@ -72,6 +72,8 @@ db.zips.createIndex( { location_2d : "2dsphere" } )
 Material for this: 
 - https://www.mongodb.com/docs/manual/core/indexes/index-types/geospatial/2dsphere/
 - https://www.mongodb.com/docs/manual/reference/operator/aggregation/geoNear/
+- https://www.mongodb.com/docs/v2.4/reference/operator/query/geoWithin/
+- https://www.mongodb.com/docs/v2.2/reference/operator/query/centerSphere/
 
 Afterwards, using updateMany we will update all the documents at once to have the new geo field.
 
@@ -96,3 +98,15 @@ db.zips.aggregate([
 ])
 
 f) Get the total population situated between 50 and 200 kms around New York's landmark, the Statue of Liberty at coordinates 40.689247, -74.044502.
+
+50 and 200 represent the distance in kilometers and 6378.1 represents Earth' radius (https://en.wikipedia.org/wiki/Earth_radius) so we get an result in radians.
+
+db.zips.aggregate( [
+    { "$match": {"location2dsphere": {"$geoWithin": {"$centerSphere": [[-74.044502, 40.689247], 50 / 6378.1]}}} },
+    { "$group": {"_id": "total_population", "count": {"$sum": "$population"}} }
+] ).pretty()
+
+db.zips.aggregate( [
+    { "$match": {"location2dsphere": {"$geoWithin": {"$centerSphere": [[-74.044502, 40.689247], 200 / 6378.1]}}} },
+    { "$group": {"_id": "total_population", "count": {"$sum": "$population"}} }
+] ).pretty()
