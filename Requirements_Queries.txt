@@ -65,8 +65,34 @@ db.zips.aggregate( [
 
 e) Get the nearest 10 zips from one of Chicago's landmarks, the Willis Tower situated at coordinates 41.878876, -87.635918.
 
+First we create the index for the 2dsphere:
 
+db.zips.createIndex( { location_2d : "2dsphere" } )
+
+Material for this: 
+- https://www.mongodb.com/docs/manual/core/indexes/index-types/geospatial/2dsphere/
+- https://www.mongodb.com/docs/manual/reference/operator/aggregation/geoNear/
+
+Afterwards, using updateMany we will update all the documents at once to have the new geo field.
+
+db.zips.updateMany(
+    {},
+    [
+        {"$set": {"location_2d.type": "Point", "location_2d.coordinates": ["$lng", "$lat"] }}
+    ]
+)
+
+Lastly, filter the 10 nearest zip codes from our coordinates.
+
+db.zips.aggregate([
+   {
+     $geoNear: {
+        near: { type: "Point", coordinates: [ -87.635918, 41.878876 ] },
+        key: "location_2d",
+        distanceField: "dist.calculated",
+     }
+   },
+   { $limit: 10 }
+])
 
 f) Get the total population situated between 50 and 200 kms around New York's landmark, the Statue of Liberty at coordinates 40.689247, -74.044502.
-
-
